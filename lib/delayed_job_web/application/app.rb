@@ -63,6 +63,7 @@ class DelayedJobWeb < Sinatra::Base
       {:name => 'Working', :path => '/working'},
       {:name => 'Pending', :path => '/pending'},
       {:name => 'Failed', :path => '/failed'},
+      {:name => 'Quarantined', :path => '/quarantined'},
       {:name => 'Stats', :path => '/stats'}
     ]
   end
