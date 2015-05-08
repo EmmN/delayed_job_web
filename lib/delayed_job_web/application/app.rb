@@ -150,7 +150,7 @@ class DelayedJobWeb < Sinatra::Base
       when :working
         rel.where(:locked_at => {"$ne" => nil})
       when :failed
-        rel.where(:last_error => {"$ne" => nil}).where(:quarantined => 0)
+        rel.where(:last_error => {"$ne" => nil}).where(:quarantined => nil)
       when :quarantined
         rel.where(:last_error => {"$ne" => nil}).where(:quarantined => 1)
       when :pending
