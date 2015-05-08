@@ -41,5 +41,13 @@
       <%= delayed_jobs(:failed, @queues).count %>
     </td>
   </tr>
+  <tr class="<%= delayed_jobs(:quarantined, @queues).count > 0 ? 'failure' : '' %>">
+    <td class="status">
+      <a href="<%= u('/quarantined') %>">Quarantined Jobs</a>
+    </td>
+    <td>
+      <%= delayed_jobs(:quarantined, @queues).count %>
+    </td>
+  </tr>
 </table>
 <%= poll %>

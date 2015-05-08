@@ -102,7 +102,7 @@ class DelayedJobWeb < Sinatra::Base
     erb :stats
   end
 
-  %w(enqueued working pending failed).each do |page|
+  %w(enqueued working pending failed quarantined).each do |page|
     get "/#{page}" do
       @jobs     = delayed_jobs(page.to_sym, @queues).order_by(:created_at.desc).offset(start).limit(per_page)
       @all_jobs = delayed_jobs(page.to_sym, @queues)
@@ -135,6 +135,11 @@ class DelayedJobWeb < Sinatra::Base
   post "/failed/clear" do
     delayed_jobs(:failed, @queues).delete_all
     redirect u('failed')
+  end
+
+  post "/quarantined/clear" do
+    delayed_jobs(:quarantined, @queues).delete_all
+    redirect u('quarantined')
   end
 
   def delayed_jobs(type, queues = [])
@@ -170,7 +175,7 @@ class DelayedJobWeb < Sinatra::Base
     @partial = false
   end
 
-  %w(overview enqueued working pending failed stats) .each do |page|
+  %w(overview enqueued working pending failed quarantined stats) .each do |page|
     get "/#{page}.poll" do
       show_for_polling(page)
     end
