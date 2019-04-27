@@ -63,6 +63,7 @@ class DelayedJobWeb < Sinatra::Base
       {:name => 'Working', :path => '/working'},
       {:name => 'Pending', :path => '/pending'},
       {:name => 'Failed', :path => '/failed'},
+      {:name => 'Quarantined', :path => '/quarantined'},
       {:name => 'Stats', :path => '/stats'}
     ]
   end
@@ -101,7 +102,7 @@ class DelayedJobWeb < Sinatra::Base
     erb :stats
   end
 
-  %w(enqueued working pending failed).each do |page|
+  %w(enqueued working pending failed quarantined).each do |page|
     get "/#{page}" do
       @jobs     = delayed_jobs(page.to_sym, @queues).order_by(:created_at.desc).offset(start).limit(per_page)
       @all_jobs = delayed_jobs(page.to_sym, @queues)
@@ -136,6 +137,11 @@ class DelayedJobWeb < Sinatra::Base
     redirect u('failed')
   end
 
+  post "/quarantined/clear" do
+    delayed_jobs(:quarantined, @queues).delete_all
+    redirect u('quarantined')
+  end
+
   def delayed_jobs(type, queues = [])
     rel = delayed_job
 
@@ -144,7 +150,9 @@ class DelayedJobWeb < Sinatra::Base
       when :working
         rel.where(:locked_at => {"$ne" => nil})
       when :failed
-        rel.where(:last_error => {"$ne" => nil})
+        rel.where(:last_error => {"$ne" => nil}).where(:quarantined => nil)
+      when :quarantined
+        rel.where(:last_error => {"$ne" => nil}).where(:quarantined => 1)
       when :pending
         rel.where(:attempts => 0, :locked_at => nil)
       else
@@ -167,7 +175,7 @@ class DelayedJobWeb < Sinatra::Base
     @partial = false
   end
 
-  %w(overview enqueued working pending failed stats) .each do |page|
+  %w(overview enqueued working pending failed quarantined stats) .each do |page|
     get "/#{page}.poll" do
       show_for_polling(page)
     end
